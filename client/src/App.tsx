@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { HelloWorldClass } from "@genezio-sdk/genezio-tutorial";
+
 import reactLogo from "./assets/react.svg";
 import "./App.css";
 
@@ -7,7 +9,8 @@ export default function App() {
   const [response, setResponse] = useState("");
 
   async function sayHello() {
-    setResponse("TODO: Not Implemented");
+    const res = await HelloWorldClass.hello(name);
+    setResponse(res);
   }
 
   return (
