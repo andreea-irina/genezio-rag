@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { HelloWorldClass } from "@genezio-sdk/genezio-tutorial";
+import { ChatService } from "@genezio-sdk/genezio-rag";
 
 import reactLogo from "./assets/react.svg";
 import "./App.css";
@@ -8,9 +8,8 @@ export default function App() {
   const [name, setName] = useState("");
   const [response, setResponse] = useState("");
 
-  async function sayHello() {
-    const res = await HelloWorldClass.hello(name);
-    setResponse(res);
+  async function extractData() {
+    ChatService.extractData();
   }
 
   return (
@@ -43,7 +42,7 @@ export default function App() {
         <br />
         <br />
 
-        <button onClick={() => sayHello()}>Say Hello</button>
+        <button onClick={() => extractData()}>Say Hello</button>
         <p className="read-the-docs">{response}</p>
       </div>
     </>

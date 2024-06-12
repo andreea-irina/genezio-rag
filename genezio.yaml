@@ -1,6 +1,6 @@
 # Learn more about Genezio YAML at https://genezio.com/docs/project-structure/genezio-configuration-file/
 # The name of the project.
-name: genezio-tutorial
+name: genezio-rag
 # The region where the project is deployed.
 region: us-east-1
 # The version of the Genezio YAML configuration to parse.
@@ -35,11 +35,11 @@ frontend:
   scripts:
     # List of scripts to run before deploying the frontend.
     deploy:
-      - npm install @genezio-sdk/genezio-tutorial
+      - npm install @genezio-sdk/genezio-rag
       - npm install
     # List of scripts that build your frontend before deployment. It should populate the specified `publish` directory.
     build: npm run build
-    # List of scripts to run when starting the local development server.   	
+    # List of scripts to run when starting the local development server.
     start:
       - npm install
       - npm run dev
