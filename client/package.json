@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@genezio/vite-plugin-genezio": "^1.0.4",
+    "@mantine/core": "^7.10.2",
+    "@tabler/icons-react": "^3.6.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
