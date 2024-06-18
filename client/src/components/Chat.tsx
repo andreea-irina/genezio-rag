@@ -9,6 +9,9 @@ import {
   Textarea,
 } from "@mantine/core";
 import { IconSend } from "@tabler/icons-react";
+import Markdown from "react-markdown";
+
+import Loading from "./Loading";
 
 function ChatMessage({
   message,
@@ -29,7 +32,10 @@ function ChatMessage({
         wordBreak: "break-word",
       }}
     >
-      <Text>{message}</Text>
+      <Text size="sm" c={isUser ? "cyan" : "teal"}>
+        {isUser ? "You" : "AI"}
+      </Text>
+      {isUser ? <Text>{message}</Text> : <Markdown>{message}</Markdown>}
     </Box>
   );
 }
@@ -61,18 +67,22 @@ function ChatInput({ onSend }: { onSend: (message: string) => void }) {
         onChange={(event) => setValue(event.currentTarget.value)}
         onKeyDown={handleKeyPress}
         placeholder="Type a message..."
-        radius="lg"
+        radius="xl"
         size="md"
         rows={1}
         maxRows={2}
         style={{ flex: 1 }}
         styles={{
           input: {
-            padding: "0.75rem",
+            padding: "10px 20px",
           },
         }}
         rightSection={
-          <ActionIcon onClick={handleSend} variant="subtle">
+          <ActionIcon
+            onClick={handleSend}
+            variant="subtle"
+            style={{ marginRight: "20px" }}
+          >
             <IconSend size={20} />
           </ActionIcon>
         }
@@ -81,17 +91,37 @@ function ChatInput({ onSend }: { onSend: (message: string) => void }) {
   );
 }
 
-export default function Chat() {
+export default function Chat({
+  onAsk,
+}: {
+  onAsk: (q: string) => Promise<string>;
+}) {
   const [messages, setMessages] = React.useState([
     { text: "Hello, how can I help you?", isUser: false },
-    { text: "I have a question about your services.", isUser: true },
   ]);
+  const [loading, setLoading] = React.useState(false);
 
-  const handleSend = (message: string) => {
+  const handleSend = async (message: string) => {
     setMessages((prevMessages) => [
       ...prevMessages,
       { text: message, isUser: true },
     ]);
+
+    try {
+      setLoading(true);
+      const answer = await onAsk(message);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { text: answer, isUser: false },
+      ]);
+    } catch (error) {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { text: "Sorry, I couldn't understand that.", isUser: false },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const scrollAreaRef = React.useRef<HTMLDivElement | null>(null);
@@ -119,6 +149,8 @@ export default function Chat() {
               isUser={message.isUser}
             />
           ))}
+
+          {loading && <Loading />}
         </Stack>
       </ScrollArea>
 

@@ -15,10 +15,28 @@ export default function App() {
     }
   }, [file]);
 
+  function handleUpload(file: File | null) {
+    setFile(file);
+
+    if (file) {
+      // const arrayBuffer = file
+      //   .arrayBuffer()
+      //   .then((buff) => new Uint8Array(buff));
+      // ChatService.extractData();
+    }
+  }
+
+  async function handleAskQuestion(question: string) {
+    await ChatService.extractData();
+    const answer = await ChatService.chat(question);
+
+    return answer;
+  }
+
   return (
     <AppShell h="100%" style={{ overflow: "hidden" }}>
       <Stack align="center" justify="center" w="100%" h="100%">
-        <Uploader file={file} setFile={setFile} />
+        <Uploader file={file} onUpload={handleUpload} />
 
         <Transition
           mounted={step === "chat"}
@@ -27,8 +45,8 @@ export default function App() {
           timingFunction="ease"
         >
           {(styles) => (
-            <Stack miw={800} mih={600} style={styles}>
-              <Chat />
+            <Stack w={800} h={600} style={styles}>
+              <Chat onAsk={handleAskQuestion} />
             </Stack>
           )}
         </Transition>

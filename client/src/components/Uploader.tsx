@@ -1,3 +1,4 @@
+import * as React from "react";
 import {
   Stack,
   Title,
@@ -8,19 +9,19 @@ import {
   Transition,
 } from "@mantine/core";
 import { IconFileUpload, IconPaperclip } from "@tabler/icons-react";
-import { useState } from "react";
 
 export default function Uploader({
   file,
-  setFile,
+  onUpload,
 }: {
   file: File | null;
-  setFile: (file: File | null) => void;
+  onUpload: (file: File | null) => void;
 }) {
-  const [uploaded, setUploaded] = useState(false);
+  const [uploaded, setUploaded] = React.useState(false);
 
   const handleFileChange = (file: File | null) => {
-    setFile(file);
+    onUpload(file);
+
     if (file) {
       setUploaded(true);
     }
@@ -37,10 +38,10 @@ export default function Uploader({
         {(styles) => (
           <Stack align="center" style={styles}>
             <Title order={1}>Upload your files</Title>
-            <Text>Drag and drop your files here</Text>
+            <Text>Click the button below</Text>
 
             <Group align="center">
-              <FileButton onChange={handleFileChange} accept="image/*">
+              <FileButton onChange={handleFileChange} accept="file/pdf">
                 {(props) => (
                   <Button {...props} leftSection={<IconFileUpload size={20} />}>
                     Upload File
