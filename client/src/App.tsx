@@ -8,6 +8,7 @@ import Chat from "./components/Chat";
 export default function App() {
   const [step, setStep] = React.useState<"upload" | "chat">("upload");
   const [file, setFile] = React.useState<File | null>(null);
+  const [isSettingUp, setIsSettingUp] = React.useState(true);
 
   React.useEffect(() => {
     if (file) {
@@ -15,19 +16,17 @@ export default function App() {
     }
   }, [file]);
 
-  function handleUpload(file: File | null) {
+  async function handleUpload(file: File | null, base64: string) {
     setFile(file);
 
     if (file) {
-      // const arrayBuffer = file
-      //   .arrayBuffer()
-      //   .then((buff) => new Uint8Array(buff));
-      // ChatService.extractData();
+      setIsSettingUp(true);
+      await ChatService.extractData(base64);
+      setIsSettingUp(false);
     }
   }
 
   async function handleAskQuestion(question: string) {
-    await ChatService.extractData();
     const answer = await ChatService.chat(question);
 
     return answer;
@@ -46,7 +45,7 @@ export default function App() {
         >
           {(styles) => (
             <Stack w={800} h={600} style={styles}>
-              <Chat onAsk={handleAskQuestion} />
+              <Chat onAsk={handleAskQuestion} isSettingUp={isSettingUp} />
             </Stack>
           )}
         </Transition>

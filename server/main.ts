@@ -1,6 +1,8 @@
 import { GenezioDeploy } from "@genezio/types";
+import fs from "fs/promises";
 import {
   ContextChatEngine,
+  Document as LlamaDocument,
   IngestionPipeline,
   KeywordExtractor,
   LlamaParseReader,
@@ -15,6 +17,7 @@ import {
   TitleExtractor,
   VectorStoreIndex,
 } from "llamaindex";
+import PdfParse from "pdf-parse";
 
 import { EntityExtractor } from "./extractors";
 
@@ -33,7 +36,9 @@ export class ChatService {
 
   constructor() {}
 
-  async extractData() {
+  async extractData(base64PDF: string) {
+    // const pdfBuffer = Buffer.from(base64PDF, "base64");
+    // const { text: pdfText } = await PdfParse(pdfBuffer);
     const documents = await new SimpleDirectoryReader().loadData({
       directoryPath: this.path,
     });
@@ -44,7 +49,7 @@ export class ChatService {
     //   gpt4oApiKey: process.env.OPENAI_API_KEY,
     // }).loadData(".");
     // console.log(test);
-    // const doc = await new PDFReader().loadDataAsContent(arrayBuffer);
+    // const doc = await new LlamaDocument({ text: pdfText });
     // console.log(doc);
     const vectorStore = new QdrantVectorStore({
       url: process.env.QDRANT_URL,
@@ -65,6 +70,7 @@ export class ChatService {
     });
     await pipeline.run({ documents });
     const retriever = index.asRetriever({ similarityTopK: 5 });
+
     this.chatEngine = new ContextChatEngine({ retriever });
   }
 
@@ -73,7 +79,11 @@ export class ChatService {
       throw new Error("Chat engine not initialized");
     }
 
-    const { response } = await this.chatEngine.chat({ message: text });
+    const { response, sourceNodes } = await this.chatEngine.chat({
+      message: text,
+    });
+
+    console.log("Source nodes:", sourceNodes);
 
     return response;
   }

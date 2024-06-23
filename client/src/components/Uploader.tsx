@@ -15,15 +15,24 @@ export default function Uploader({
   onUpload,
 }: {
   file: File | null;
-  onUpload: (file: File | null) => void;
+  onUpload: (file: File | null, base64: string) => void;
 }) {
   const [uploaded, setUploaded] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
   const handleFileChange = (file: File | null) => {
-    onUpload(file);
-
     if (file) {
       setUploaded(true);
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          onUpload(file, reader.result);
+        } else setError("Error reading file");
+      };
+      reader.onerror = (error) => {
+        console.error("Error reading file:", error);
+      };
     }
   };
 
@@ -49,6 +58,8 @@ export default function Uploader({
                 )}
               </FileButton>
             </Group>
+
+            {error && <Text c="red">{error}</Text>}
           </Stack>
         )}
       </Transition>

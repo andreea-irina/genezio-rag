@@ -40,7 +40,13 @@ function ChatMessage({
   );
 }
 
-function ChatInput({ onSend }: { onSend: (message: string) => void }) {
+function ChatInput({
+  disabled,
+  onSend,
+}: {
+  disabled: boolean;
+  onSend: (message: string) => void;
+}) {
   const [value, setValue] = React.useState("");
   const inputRef = React.useRef<HTMLTextAreaElement | null>(null);
 
@@ -72,6 +78,7 @@ function ChatInput({ onSend }: { onSend: (message: string) => void }) {
         rows={1}
         maxRows={2}
         style={{ flex: 1 }}
+        disabled={disabled}
         styles={{
           input: {
             padding: "10px 20px",
@@ -92,8 +99,10 @@ function ChatInput({ onSend }: { onSend: (message: string) => void }) {
 }
 
 export default function Chat({
+  isSettingUp,
   onAsk,
 }: {
+  isSettingUp: boolean;
   onAsk: (q: string) => Promise<string>;
 }) {
   const [messages, setMessages] = React.useState([
@@ -150,11 +159,11 @@ export default function Chat({
             />
           ))}
 
-          {loading && <Loading />}
+          {loading || isSettingUp ? <Loading /> : null}
         </Stack>
       </ScrollArea>
 
-      <ChatInput onSend={handleSend} />
+      <ChatInput onSend={handleSend} disabled={loading || isSettingUp} />
     </>
   );
 }
