@@ -6,12 +6,14 @@
     "lib": ["es6", "dom", "ES2022"],
     "outDir": "build",
     "rootDir": ".",
-    "strict": false,
+    "strict": true,
     "noImplicitAny": true,
-    "esModuleInterop": true,
     "resolveJsonModule": true,
     "allowJs": true,
-    "types": ["node"]
+    "types": ["node"],
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true
   },
-  "include": ["**/*"]
+  "include": ["**/*"],
+  "exclude": ["node_modules"]
 }

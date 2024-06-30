@@ -105,9 +105,9 @@ export default function Chat({
   isSettingUp: boolean;
   onAsk: (q: string) => Promise<string>;
 }) {
-  const [messages, setMessages] = React.useState([
-    { text: "Hello, how can I help you?", isUser: false },
-  ]);
+  const [messages, setMessages] = React.useState<
+    Array<{ text: string; isUser: boolean }>
+  >([]);
   const [loading, setLoading] = React.useState(false);
 
   const handleSend = async (message: string) => {

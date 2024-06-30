@@ -20,6 +20,8 @@ backend:
     deploy: npm install
     # List of scripts to run before starting `genezio local`.
     local: npm install
+  # The cloud provider where the backend is deployed.
+  cloudProvider: genezio
 # Information about the frontend, including the path, language, and publish directory.
 # It is optional. It can also be an array if there are multiple frontends you want to deploy.
 frontend:
@@ -35,11 +37,11 @@ frontend:
   scripts:
     # List of scripts to run before deploying the frontend.
     deploy:
-      - npm install @genezio-sdk/genezio-rag
+      - npm install @genezio-sdk/${{projectName}}@1.0.0-${{stage}}
       - npm install
     # List of scripts that build your frontend before deployment. It should populate the specified `publish` directory.
     build: npm run build
     # List of scripts to run when starting the local development server.
     start:
-      - npm install
-      - npm run dev
+      - npm install --silent
+      - npm run dev --silent

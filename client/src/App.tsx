@@ -16,7 +16,7 @@ export default function App() {
     }
   }, [file]);
 
-  async function handleUpload(file: File | null, base64: string) {
+  async function handleUpload(file: File | null, base64?: string) {
     setFile(file);
 
     if (file) {
@@ -34,7 +34,7 @@ export default function App() {
 
   return (
     <AppShell h="100%" style={{ overflow: "hidden" }}>
-      <Stack align="center" justify="center" w="100%" h="100%">
+      <Stack align="center" justify="center" w="100%" h="100%" py={6}>
         <Uploader file={file} onUpload={handleUpload} />
 
         <Transition

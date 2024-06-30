@@ -1,14 +1,14 @@
-import { GenezioDeploy } from "@genezio/types";
-import fs from "fs/promises";
+import { GenezioDeploy, GenezioMethod } from "@genezio/types";
+// import fs from "fs/promises";
 import {
   ContextChatEngine,
-  Document as LlamaDocument,
+  // Document as LlamaDocument,
   IngestionPipeline,
   KeywordExtractor,
-  LlamaParseReader,
+  // LlamaParseReader,
   OpenAI,
   OpenAIEmbedding,
-  PDFReader,
+  // PDFReader,
   QdrantVectorStore,
   QuestionsAnsweredExtractor,
   SimpleDirectoryReader,
@@ -17,9 +17,9 @@ import {
   TitleExtractor,
   VectorStoreIndex,
 } from "llamaindex";
-import PdfParse from "pdf-parse";
+import pg from "pg";
 
-import { EntityExtractor } from "./extractors";
+// import { EntityExtractor } from "./extractors";
 
 /**
  * Chat operations.
@@ -27,16 +27,25 @@ import { EntityExtractor } from "./extractors";
 @GenezioDeploy()
 export class ChatService {
   path = "./data";
-  llm = new OpenAI({
-    model: "gpt-4o",
-    apiKey: process.env.OPENAI_API_KEY,
-    additionalChatOptions: { response_format: { type: "json_object" } },
-  });
-  chatEngine: ContextChatEngine;
+  llm: OpenAI | null = null;
+  chatEngine: ContextChatEngine | null = null;
+  pool: pg.Pool | null = null;
 
-  constructor() {}
+  constructor() {
+    this.llm = new OpenAI({
+      model: "gpt-4o",
+      apiKey: process.env.OPENAI_API_KEY,
+      additionalChatOptions: { response_format: { type: "json_object" } },
+    });
 
-  async extractData(base64PDF: string) {
+    this.pool = new pg.Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: true,
+    });
+  }
+
+  @GenezioMethod()
+  async extractData(base64PDF?: string): Promise<void> {
     // const pdfBuffer = Buffer.from(base64PDF, "base64");
     // const { text: pdfText } = await PdfParse(pdfBuffer);
     const documents = await new SimpleDirectoryReader().loadData({
@@ -63,7 +72,7 @@ export class ChatService {
         new KeywordExtractor(),
         new SummaryExtractor(),
         new QuestionsAnsweredExtractor(),
-        new EntityExtractor(),
+        // new EntityExtractor(),
         new OpenAIEmbedding(),
       ],
       vectorStore,
@@ -74,7 +83,7 @@ export class ChatService {
     this.chatEngine = new ContextChatEngine({ retriever });
   }
 
-  async chat(text: string) {
+  async chat(text: string): Promise<string> {
     if (!this.chatEngine) {
       throw new Error("Chat engine not initialized");
     }
