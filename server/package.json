@@ -10,7 +10,7 @@
   "dependencies": {
     "@genezio/types": "^1.0.19",
     "@types/pg": "^8.11.6",
-    "llamaindex": "^0.3.16",
+    "llamaindex": "^0.4.6",
     "node-fetch": "^3.3.2",
     "pdf-parse": "^1.1.1",
     "pg": "^8.12.0"

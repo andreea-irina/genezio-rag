@@ -1,7 +1,7 @@
 import { GenezioDeploy, GenezioMethod } from "@genezio/types";
 // import fs from "fs/promises";
 import {
-  ContextChatEngine,
+  CohereRerank,
   // Document as LlamaDocument,
   IngestionPipeline,
   KeywordExtractor,
@@ -11,6 +11,8 @@ import {
   // PDFReader,
   QdrantVectorStore,
   QuestionsAnsweredExtractor,
+  ResponseSynthesizer,
+  RetrieverQueryEngine,
   SimpleDirectoryReader,
   SimpleNodeParser,
   SummaryExtractor,
@@ -19,7 +21,7 @@ import {
 } from "llamaindex";
 import pg from "pg";
 
-// import { EntityExtractor } from "./extractors";
+import { EntityExtractor } from "./extractors";
 
 /**
  * Chat operations.
@@ -28,23 +30,21 @@ import pg from "pg";
 export class ChatService {
   path = "./data";
   llm: OpenAI | null = null;
-  chatEngine: ContextChatEngine | null = null;
+  queryEngine: RetrieverQueryEngine | null = null;
   pool: pg.Pool | null = null;
 
   constructor() {
     this.llm = new OpenAI({
       model: "gpt-4o",
       apiKey: process.env.OPENAI_API_KEY,
-      additionalChatOptions: { response_format: { type: "json_object" } },
     });
 
-    this.pool = new pg.Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: true,
-    });
+    // this.pool = new pg.Pool({
+    //   connectionString: process.env.DATABASE_URL,
+    //   ssl: true,
+    // });
   }
 
-  @GenezioMethod()
   async extractData(base64PDF?: string): Promise<void> {
     // const pdfBuffer = Buffer.from(base64PDF, "base64");
     // const { text: pdfText } = await PdfParse(pdfBuffer);
@@ -72,7 +72,7 @@ export class ChatService {
         new KeywordExtractor(),
         new SummaryExtractor(),
         new QuestionsAnsweredExtractor(),
-        // new EntityExtractor(),
+        new EntityExtractor(),
         new OpenAIEmbedding(),
       ],
       vectorStore,
@@ -80,20 +80,49 @@ export class ChatService {
     await pipeline.run({ documents });
     const retriever = index.asRetriever({ similarityTopK: 5 });
 
-    this.chatEngine = new ContextChatEngine({ retriever });
+    const nodePostprocessor = new CohereRerank({
+      apiKey: process.env.COHERE_API_KEY || "",
+      topN: 4,
+    });
+    const responseSynthesizer = new ResponseSynthesizer();
+
+    this.queryEngine = index.asQueryEngine({
+      retriever,
+      nodePostprocessors: [nodePostprocessor],
+      responseSynthesizer,
+    });
   }
 
+  @GenezioMethod()
   async chat(text: string): Promise<string> {
-    if (!this.chatEngine) {
-      throw new Error("Chat engine not initialized");
+    if (!this.queryEngine) {
+      throw new Error("Query engine not initialized");
     }
 
-    const { response, sourceNodes } = await this.chatEngine.chat({
-      message: text,
+    const intention = await this.detectIntention(text);
+    console.log(`Detected intention: ${intention}`);
+
+    const { response } = await this.queryEngine.query({
+      query: `Answer the following query using the provided document: "${text}". This is the intent detected: "${intention}". If the document does not contain the answer, please let me know and don't provide an answer.`,
     });
 
-    console.log("Source nodes:", sourceNodes);
+    console.log(`Response: ${response}`);
 
     return response;
+  }
+
+  @GenezioMethod()
+  async detectIntention(query: string) {
+    const response = await this.llm?.chat({
+      messages: [
+        {
+          role: "user",
+          content: `What is the intention behind this query: "${query}"?`,
+        },
+      ],
+    });
+
+    const intention = response?.message.content;
+    return intention || "unknown";
   }
 }

@@ -21,7 +21,7 @@ export default function App() {
 
     if (file) {
       setIsSettingUp(true);
-      await ChatService.extractData(base64);
+      await ChatService.extractData();
       setIsSettingUp(false);
     }
   }
